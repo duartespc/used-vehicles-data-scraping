@@ -1,3 +1,4 @@
+import pdb
 import numpy as np
 import pandas as pd
 import matplotlib as mpl 
@@ -17,6 +18,10 @@ def cilindradaXpreco(data, modelo=None):
 	data['cilindrada'].replace(' ', np.nan, inplace=True)
 	data['cilindrada'].replace('0', np.nan, inplace=True)
 
+# Substitui as strings vazias por NaN, para que depois possamos eliminá-las
+	data['preco'].replace('.', '', inplace=True)
+	data['preco'].replace(',', '', inplace=True)
+
 	# Substitui as strings vazias por NaN, para que depois possamos eliminá-las
 	data['preco'].replace('', np.nan, inplace=True)
 	data['preco'].replace(' ', np.nan, inplace=True)
@@ -35,7 +40,7 @@ def cilindradaXpreco(data, modelo=None):
 	fig, ax = plt.subplots()
 
 	cilindrada = data['cilindrada'].astype('int', copy=True)
-	preco = data['preco']
+	preco = data['preco'].astype('int', copy=True)
 
 	ax.scatter(cilindrada, preco, s=30)
 	
@@ -43,52 +48,58 @@ def cilindradaXpreco(data, modelo=None):
 		ax.set(xlabel='Cilindrada', ylabel='Preço',
     		   title='Cilindrada x Preço (todos os modelos)')	
 	else:
-		ax.set(xlabel='Quilometragem', ylabel='Preço',
-    		   title='Quilometragem x Preço ('+modelo+')')	
+		ax.set(xlabel='quilometros', ylabel='Preço',
+    		   title='quilometros x Preço ('+modelo+')')	
 	ax.grid()
 
 	fig.savefig("cilindradaXpreco.png")
 	plt.show()
 
 
-def quilometragemXpreco(data, modelo):		
+def quilometrosXpreco(data, modelo):
 	# Substitui as strings vazias por NaN, para que depois possamos eliminá-las
 	data['modelo'].replace('', np.nan, inplace=True)
 	data['modelo'].replace(' ', np.nan, inplace=True)
 
-	data['quilometragem'].replace('', np.nan, inplace=True)
-	data['quilometragem'].replace(' ', np.nan, inplace=True)
-	data['quilometragem'].replace('0', np.nan, inplace=True)
+	# Substitui os pontos finais por virgulas
+	#data['quilometros'].replace('.', '', inplace=True)
+	data['quilometros'].replace('', np.nan, inplace=True)
+	data['quilometros'].replace(' ', np.nan, inplace=True)
+	data['quilometros'].replace('0', np.nan, inplace=True)
+
+	# Retira os pontos nos numeros > 1000
+	data['preco'].replace('.', '', inplace=True)
+	data['preco'].replace(',', '', inplace=True)
+
 
 	# Substitui as strings vazias por NaN, para que depois possamos eliminá-las
 	data['preco'].replace('', np.nan, inplace=True)
 	data['preco'].replace(' ', np.nan, inplace=True)
 	#print('--'+data['modelo'][0]+'--')
 
-
 	# Exclui todas as linhas em que possuam NaN nas colunas 'preco' e modelo
-	data.dropna(subset=['preco', 'modelo', 'quilometragem'], inplace=True)
+	data.dropna(subset=['preco', 'modelo', 'quilometros'], inplace=True)
 
 	# Seleciona as motos com o modelo definido por 'modelo'
 	data = data.loc[data['modelo'] == modelo]
 
 	# Tratar outliers
 	# TODO: Implementar um método de detecção de outliers mais eficaz
-	data = data[data['quilometragem'] < 200000]
-	data = data[data['quilometragem'] > 100]
+	#data = data[data['quilometros'] < 200000]
+	#data = data[data['quilometros'] > 100]
 
 	fig, ax = plt.subplots()
 
-	quilometragem = data['quilometragem'].astype('int', copy=True)
-	preco = data['preco']
+	quilometros = data['quilometros'].astype('int', copy=True)
+	preco = data['preco'].astype('int', copy=True)
 
-	ax.scatter(quilometragem, preco)
+	ax.scatter(quilometros, preco)
 	
-	ax.set(xlabel='Quilometragem', ylabel='Preço',
-    	   title='Quilometragem x Preço ('+modelo+')')	
+	ax.set(xlabel='quilometros', ylabel='Preço',
+    	   title='quilometros x Preço ('+modelo+')')	
 	ax.grid()
 
-	fig.savefig("quilometragemXpreco.png")
+	fig.savefig("graficos/quilometrosXpreco.png")
 	plt.show()	
 
 
@@ -100,6 +111,10 @@ def anoXpreco(data, modelo):
 	data['ano'].replace('', np.nan, inplace=True)
 	data['ano'].replace(' ', np.nan, inplace=True)
 	data['ano'].replace('0', np.nan, inplace=True)
+
+	# Retira os pontos nos numeros > 1000
+	data['preco'].replace('.', '', inplace=True)
+	data['preco'].replace(',', '', inplace=True)
 
 	# Substitui as strings vazias por NaN, para que depois possamos eliminá-las
 	data['preco'].replace('', np.nan, inplace=True)
@@ -116,7 +131,7 @@ def anoXpreco(data, modelo):
 	fig, ax = plt.subplots()
 
 	ano = data['ano'].astype('int', copy=True)
-	preco = data['preco']
+	preco = data['preco'].astype('int', copy=True)
 
 	ax.scatter(ano, preco)
 	
@@ -124,7 +139,7 @@ def anoXpreco(data, modelo):
     	   title='Ano x Preço ('+modelo+')')	
 	ax.grid()
 
-	fig.savefig("anoXpreco.png")
+	fig.savefig("graficos/anoXpreco.png")
 	plt.show()	
 
 
@@ -138,6 +153,7 @@ Constrói gráficos do tipo boxplot levando em consideração os modelos x preç
 
 """
 def modeloXpreco(data, numModelos):
+
 
 	# Substitui as strings vazias por NaN, para que depois possamos eliminá-las
 	data['modelo'].replace('', np.nan, inplace=True)
@@ -195,87 +211,6 @@ def modeloXpreco(data, numModelos):
 	fig.savefig('modeloXpreco.png', bbox_inches='tight')
 
 
-def regressao(data, modelo=None):
-
-	if modelo != None:
-		data = data.loc[data['modelo'] == modelo]
-		# Se estvermos analisando apenas 1 modelo, a coluna 'modelo' se torna inútil
-		data = data.drop(['modelo'], axis=1)
-	
-	data = data[data['quilometragem'] < 100000]
-	data = data[data['quilometragem'] > 0]
-
-	data_com_urls = data
-	# remove as URLs
-	data = data.drop(['url'], axis=1)
-
-	data = pd.get_dummies(data)
-	# Coluna inútil
-	data = data.drop(['categoria_Motos'], axis=1)
-	preco = np.asarray(data['preco'])
-	quilometragem = data['quilometragem']
-	
-	print("\nVariáveis: ")
-	print(list(data))
-
-	X = np.column_stack((np.ones(data['quilometragem'].shape[0]),
-						data['quilometragem'],
-						data['cilindrada_250'],
-						data['cilindrada_300'],
-						data['cilindrada_350'],
-						data['cilindrada_500'],
-						data['ano_2009'],
-						data['ano_2010'],
-						data['ano_2011'],
-						data['ano_2012'],
-						data['ano_2013'],
-						data['ano_2014'],
-						data['ano_2015']
-	))
-
-	#print(preco)
-	model = sm.OLS(data['preco'], X)
-	results = model.fit()
-
-	fig, ax = plt.subplots(figsize=(8,6))
-	ax.plot(data['quilometragem'], data['preco'], 'o', label="data")
-	#ax.plot(data['quilometragem'], results.fittedvalues, 'r--.', label="OLS")
-	
-	data_com_urls = data_com_urls.assign(diferenca_de_preco=pd.Series(np.zeros(len(data_com_urls['preco']))-1).values)	
-
-	#print(list(data_com_urls))
-
-	y = []
-	for index, row in data.iterrows():
-
-		x = [row[1],
-			row[2],
-			row[3],
-			row[4],
-			row[5],
-			row[6],
-			row[7],
-			row[8],
-			row[9],
-			row[10]]
-		preco_predito = modelo_linear(x, results)
-		# Calcula PREÇO REAL - PREÇO PREDITO
-		diferenca_de_preco = row['preco'] - preco_predito
-		data_com_urls.at[index, 'diferenca_de_preco'] = diferenca_de_preco
-		#print("Diferença de preço:")
-		#print(diferenca_de_preco)
-
-		y.append(modelo_linear(x, results))
-	
-	#print(data_com_urls)
-	ax.plot(data['quilometragem'], y, 'r--.', label="OLS")
-	#fig.savefig("vish.png")
-	#ax.savefig('vish.png', bbox_inches='tight')
-
-	# Exibe os resultados ordenados pela coluna "diferenca_de_preco" de ordem crescente.
-	# Os valores menores são os anúncios mais baratos, em relação ao preço predito
-	data_com_urls.sort_values('diferenca_de_preco', ascending=True, inplace=True)
-	data_com_urls.to_csv("diferenca_de_preco.csv")
 
 def modelo_linear(x, results):
 	y = 0
@@ -294,18 +229,17 @@ def analytic():
 	print("Analisando os dados")
 
 	# Carregando os dados
-	data = pd.read_csv('olx_data.csv')
-	data = data[data.modelo != 'HONDA ']
+	data = pd.read_csv('motas_olx.csv')
+	modelo = 'BWs'
+	print(data)
+
+	#pdb.set_trace()
 
 	# Vamos gerar os gráficos
-	modeloXpreco(data, 4)
-	anoXpreco(data, 'HONDA CB 300R/ 300R FLEX')
-	quilometragemXpreco(data, 'HONDA CB 300R/ 300R FLEX')
-	cilindradaXpreco(data, 'HONDA CB 300R/ 300R FLEX')
-
-	# Vamos fazer a regressão
-	#regressao(data, modelo='HONDA CB 300R/ 300R FLEX')
-	regressao(data, modelo='HONDA CB 300R/ 300R FLEX')
+	#modeloXpreco(data, 4)
+	anoXpreco(data, modelo)
+	quilometrosXpreco(data, modelo)
+	#cilindradaXpreco(data, 'MT-07')
 
 
 if __name__ == '__main__':
